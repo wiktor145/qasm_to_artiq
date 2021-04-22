@@ -1,5 +1,7 @@
 from artiq.experiment import *
-#<IMPORTS>
+
+
+# <IMPORTS>
 
 class MyExperiment(EnvExperiment):
     """
@@ -7,18 +9,18 @@ class MyExperiment(EnvExperiment):
     """
 
     def build(self):
-        #<BUILD_BEGIN>
+        # <BUILD_BEGIN>
         pass
-        #<BUILD_END>
+        # <BUILD_END>
 
     def run(self):
-        #<RUN_BEGIN>
+        # <RUN_BEGIN>
         pass
-        #<RUN_END>
+        # <RUN_END>
 
     """Function generated from qasm"""
 
-    #<GENERATED_FUNCTIONS>
+    # <GENERATED_FUNCTIONS>
 
     """Custom functions - should be implemented"""
 
@@ -64,6 +66,7 @@ class MyExperiment(EnvExperiment):
         return True
 
     """User override implementations of basic gates"""
+
 
 # todo funkcja ogarniająca ifa argumenty to nazwa crega i jakiś int
 # tak zrobić żeby było coś w stylu
