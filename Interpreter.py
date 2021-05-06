@@ -8,9 +8,6 @@ from openqasmparser.node import *
 sys.setrecursionlimit(10000)
 
 
-# todo external
-# todo opaque, które nic nie robi
-# todo w bramkach i w measure ogarniać zarówno indexedid (q[1]) jak i id (q) ????
 
 class Interpreter(object):
     def __init__(self, template_text, text, indent, half_indent, kernel_decorator, parallel_on_wrg):
