@@ -18,6 +18,14 @@ class MyExperiment(EnvExperiment):
         self.prepare_qbits('q', 3)
         self.prepare_cregs('c', 3)
         self.h('q', 1)
+        with parallel:
+            self.h('q', 0)
+            self.h('q', 1)
+            self.h('q', 2)
+        with parallel:
+            self.x('q', 0)
+            self.x('q', 1)
+            self.x('q', 2)
         self.x('q', 2)
         self.set_qbit('q', 0, 0)
         self.ccx('q', 0, 'q', 1, 'q', 2)

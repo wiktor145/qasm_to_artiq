@@ -7,13 +7,13 @@ from openqasmparser.node import *
 
 sys.setrecursionlimit(10000)
 
+
 # todo external
-#todo barrier, któe nic nie robi
 # todo opaque, które nic nie robi
-# todo w bramkach i w measure ogarniać zarówno indexedid (q[1]) jak i id (q)
+# todo w bramkach i w measure ogarniać zarówno indexedid (q[1]) jak i id (q) ????
 
 class Interpreter(object):
-    def __init__(self, template_text, text, indent, half_indent, kernel_decorator):
+    def __init__(self, template_text, text, indent, half_indent, kernel_decorator, parallel_on_wrg):
         self.text = text
         self.template_text = template_text
         self.indent = indent
@@ -21,6 +21,8 @@ class Interpreter(object):
         self.half_indent = half_indent
         self.do_not_override_user_defined = True
         self.kernel_decorator = kernel_decorator
+        self.parallel_on_whole_register_gates = parallel_on_wrg
+        self.registers_sizes = {}
 
     @on('node')
     def visit(self, node):
@@ -100,13 +102,13 @@ class Interpreter(object):
     def visit(self, node):
         base = "self.prepare_qbits('{}', {})\n".format(node.name, node.index)
         self.add_text_with_indent(base)
-
+        self.registers_sizes[node.name] = node.index
 
     @when(openqasmparser.node.creg.Creg)
     def visit(self, node):
         base = "self.prepare_cregs('{}', {})\n".format(node.name, node.index)
         self.add_text_with_indent(base)
-
+        self.registers_sizes[node.name] = node.index
 
     def get_arguments_list_from_children_index_list(self, children):
         ret = ""
@@ -118,8 +120,25 @@ class Interpreter(object):
 
     @when(openqasmparser.node.customunitary.CustomUnitary)
     def visit(self, node):
-        base = "self." + node.name + "({})\n".format(
-            self.get_arguments_list_from_children_index_list(node.bitlist.children))
+        base = ""
+        if isinstance(node.bitlist.children[0], openqasmparser.node.indexedid.IndexedId):
+            base = "self." + node.name + "({})\n".format(
+                self.get_arguments_list_from_children_index_list(node.bitlist.children))
+        else:  # Id
+            if self.parallel_on_whole_register_gates:
+                base += "with parallel:\n"
+                for i in range(self.registers_sizes[node.bitlist.children[0].name]):
+                    base += self.half_indent + self.indent + "self." + node.name + "('{}', {})\n".format(
+                        node.bitlist.children[0].name, i)
+
+            else:
+                for i in range(self.registers_sizes[node.bitlist.children[0].name]):
+                    if i:
+                        base += self.indent + "self." + node.name + "('{}', {})\n".format(node.bitlist.children[0].name,
+                                                                                          i)
+                    else:
+                        base += "self." + node.name + "('{}', {})\n".format(node.bitlist.children[0].name, i)
+
         self.add_text_with_indent(base)
 
     @when(openqasmparser.node.measure.Measure)
@@ -128,7 +147,6 @@ class Interpreter(object):
                                                            node.children[1].name, node.children[1].index)
         self.add_text_with_indent(base)
 
-
     def get_args_from_indexedid(self, indexed_id):
         return "'" + indexed_id.name + "', " + str(indexed_id.index)
 
@@ -136,7 +154,6 @@ class Interpreter(object):
     def visit(self, node):
         base = "self.set_qbit({}, 0)\n".format(self.get_args_from_indexedid(node.children[0]))
         self.add_text_with_indent(base)
-
 
     @when(openqasmparser.node.if_.If)
     def visit(self, node):
@@ -151,9 +168,7 @@ class Interpreter(object):
         else:
             self.text += self.indent + base
 
-# todo funkcja ogarniająca ifa
-# tak zrobić żeby było coś w stylu
-"""
-if self.conditional('q', 2):
-    to coś, co jest wewnątrz
-"""
+    @when(openqasmparser.node.barrier.Barrier)
+    def visit(self, node):
+        pass
+    # dopisać dodanie jakiejś funkcji ewentualnie komentarza jakiegoś?

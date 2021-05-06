@@ -67,10 +67,3 @@ class MyExperiment(EnvExperiment):
 
     """User override implementations of basic gates"""
 
-
-# todo funkcja ogarniająca ifa argumenty to nazwa crega i jakiś int
-# tak zrobić żeby było coś w stylu
-"""
-if self.conditional('q', 2):
-    to coś, co jest wewnątrz
-"""
